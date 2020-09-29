@@ -14,8 +14,12 @@ public class CurrencyService {
     @Autowired
     CurrencyRepo currencyRepo;
 
-    public Currency addCurrency(Currency currency){
+    public Currency addCurrency(Currency currency) {
         currencyRepo.save(currency);
+        return currency;
+    }
+
+    public Currency updateCurrency(Currency currency) {
         return currency;
     }
 

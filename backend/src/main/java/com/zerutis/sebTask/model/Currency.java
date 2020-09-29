@@ -1,33 +1,24 @@
 package com.zerutis.sebTask.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.math.BigDecimal;
 
-@Entity(name="Currency")
-@Table(name="Currency")
+@Table(name = "Currency")
+@Entity(name = "currency")
 public class Currency {
-    @Column(name = "currency_id")
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "currency_id")
     private Integer id;
 
-    @Column(name = "code")
+    @Column(name = "code", nullable = false)
     private String code;
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @JsonManagedReference(value = "currency")
-    @OneToOne(mappedBy = "currency", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private FxRate fxRate;
-
-    @JsonManagedReference(value = "currency")
-    @OneToMany(mappedBy = "currency", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<RateHistory> rateHistories = new ArrayList<>();
+    @Column(name = "fxRate", precision = 12, scale = 5)
+    private BigDecimal fxRate;
 
     public Integer getId() {
         return id;
@@ -53,19 +44,21 @@ public class Currency {
         this.name = name;
     }
 
-    public FxRate getFxRate() {
+    public BigDecimal getFxRate() {
         return fxRate;
     }
 
-    public void setFxRate(FxRate fxRate) {
+    public void setFxRate(BigDecimal fxRate) {
         this.fxRate = fxRate;
     }
 
-    public List<RateHistory> getRateHistories() {
-        return rateHistories;
-    }
-
-    public void setRateHistories(List<RateHistory> rateHistories) {
-        this.rateHistories = rateHistories;
+    @Override
+    public String toString() {
+        return "Currency{" +
+                "id=" + id +
+                ", code='" + code + '\'' +
+                ", name='" + name + '\'' +
+                ", fxRate=" + fxRate +
+                '}';
     }
 }

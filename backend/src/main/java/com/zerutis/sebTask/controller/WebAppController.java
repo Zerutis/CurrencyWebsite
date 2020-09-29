@@ -13,7 +13,5 @@ public class WebAppController {
     @GetMapping
     public void addCurrencies(){
         xmlHandler.fillCurrency();
-        xmlHandler.fillFxRate();
-        xmlHandler.fillRateHistory();
     }
 }

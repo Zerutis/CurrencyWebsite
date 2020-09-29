@@ -2,11 +2,7 @@ package com.zerutis.sebTask;
 
 
 import com.zerutis.sebTask.model.Currency;
-import com.zerutis.sebTask.model.FxRate;
-import com.zerutis.sebTask.model.RateHistory;
 import com.zerutis.sebTask.service.CurrencyService;
-import com.zerutis.sebTask.service.FxRateService;
-import com.zerutis.sebTask.service.RateHistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import org.w3c.dom.Document;
@@ -17,25 +13,16 @@ import org.w3c.dom.NodeList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.zip.DataFormatException;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 public class XmlHandler {
     public Document currencyDoc = setDocument("http://www.lb.lt/webservices/FxRates/FxRates.asmx/getCurrencyList");
     public Document fxRateDoc = setDocument("http://www.lb.lt/webservices/FxRates/FxRates.asmx/getCurrentFxRates?tp=eu");
-    public Document rateHistoryDoc = setDocument("http://www.lb.lt/webservices/FxRates/FxRates.asmx/getFxRatesForCurrency?tp=eu&ccy=usd&dtFrom=2020-03-01&dtTo=2020-04-01");
 
     @Autowired
     CurrencyService currencyService;
-
-    @Autowired
-    FxRateService fxRateService;
-
-    @Autowired
-    RateHistoryService rateHistoryService;
 
     private static Document setDocument(String docURL){
         try {
@@ -53,15 +40,17 @@ public class XmlHandler {
 
     public void fillCurrency(){
         NodeList currencyList = currencyDoc.getElementsByTagName("CcyNtry");
+        NodeList fxRateList = fxRateDoc.getElementsByTagName("FxRate");
 
-        setCurrency(currencyList, currencyService);
+        setCurrency(currencyList, fxRateList, currencyService);
     }
-    private static void setCurrency(NodeList listOfCurrency, CurrencyService currencyService)
+    private static void setCurrency(NodeList currencyList, NodeList fxRateList, CurrencyService currencyService)
     {
         try {
-            for(int i=0; i < listOfCurrency.getLength(); i++) {
+            List<Currency> currencies = new ArrayList<>();
+            for(int i=0; i < currencyList.getLength(); i++) {
 
-                Node currency = listOfCurrency.item(i);
+                Node currency = currencyList.item(i);
                 if (currency.getNodeType() == Node.ELEMENT_NODE) {
                     Element currElement = (Element) currency;
 
@@ -72,28 +61,15 @@ public class XmlHandler {
                     curr.setCode(((Node) codeList.item(0)).getNodeValue().trim());
                     curr.setName(((Node) nameList.item(0)).getNodeValue().trim());
 
-                    currencyService.addCurrency(curr);
+                    currencies.add(curr);
                 }
             }
-        } catch(Exception ex){
-            System.out.println(ex.getMessage());
-        }
-    }
-
-    public void fillFxRate(){
-        NodeList fxRateList = fxRateDoc.getElementsByTagName("FxRate");
-
-        setFxRate(fxRateList, fxRateService);
-    }
-
-    private static void setFxRate(NodeList fxRateList, FxRateService fxRateService){
-        try {
             for(int i=0; i < fxRateList.getLength(); i++) {
 
-                Node rate = fxRateList.item(i);
-                if (rate.getNodeType() == Node.ELEMENT_NODE) {
-                    Element rateElement = (Element) rate;
-                    Node CcyAmt = rateElement.getElementsByTagName("CcyAmt").item(1);
+                Node fxRate = fxRateList.item(i);
+                if(fxRate.getNodeType() == Node.ELEMENT_NODE){
+                    Element fxRateElement = (Element) fxRate;
+                    Node CcyAmt = fxRateElement.getElementsByTagName("CcyAmt").item(1);
 
                     if (CcyAmt.getNodeType() == Node.ELEMENT_NODE) {
                         Element CcyAmtElement = (Element) CcyAmt;
@@ -101,49 +77,18 @@ public class XmlHandler {
                         String currencyCode = CcyAmtElement.getElementsByTagName("Ccy").item(0).getTextContent();
                         BigDecimal currencyFxRate = new BigDecimal(CcyAmtElement.getElementsByTagName("Amt").item(0).getTextContent());
 
-                        FxRate fxRate = new FxRate();
-                        fxRate.setValue(currencyFxRate);
-                        fxRateService.addFxRate(fxRate, currencyCode);
+                        currencies.forEach(currency -> {
+                            if (currencyCode.equals(currency.getCode())){
+                                currency.setFxRate(currencyFxRate);
+                                return;
+                            }
+                        });
                     }
                 }
             }
-        } catch(Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-    public void fillRateHistory(){
-        NodeList rateHisList = rateHistoryDoc.getElementsByTagName("FxRate");
-
-        setRateHistory(rateHisList, rateHistoryService);
-    }
-
-    private static void setRateHistory(NodeList rateHisList, RateHistoryService rateHisService){
-        try {
-            for(int i=0; i < rateHisList.getLength(); i++) {
-
-                Node rate = rateHisList.item(i);
-                if (rate.getNodeType() == Node.ELEMENT_NODE) {
-                    Element rateElement = (Element) rate;
-                    String date = rateElement.getElementsByTagName("Dt").item(0).getTextContent();
-                    Node CcyAmt = rateElement.getElementsByTagName("CcyAmt").item(1);
-
-                    if (CcyAmt.getNodeType() == Node.ELEMENT_NODE) {
-                        Element CcyAmtElement = (Element) CcyAmt;
-
-                        BigDecimal currencyFxRate = new BigDecimal(CcyAmtElement.getElementsByTagName("Amt").item(0).getTextContent());
-
-                        RateHistory rateHistory = new RateHistory();
-                        rateHistory.setDate(date);
-                        rateHistory.setValue(currencyFxRate);
-                        rateHisService.addRateHistory(rateHistory, "USD");
-                    }
-                }
-            }
-        } catch(Exception e)
-        {
-            e.printStackTrace();
+            currencies.forEach(currency -> currencyService.addCurrency(currency));
+        } catch(Exception ex){
+            System.out.println(ex.getMessage());
         }
     }
 }
