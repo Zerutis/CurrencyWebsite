@@ -18,13 +18,13 @@ import java.util.List;
 
 @RestController
 public class XmlHandler {
-    public Document currencyDoc = setDocument("http://www.lb.lt/webservices/FxRates/FxRates.asmx/getCurrencyList");
-    public Document fxRateDoc = setDocument("http://www.lb.lt/webservices/FxRates/FxRates.asmx/getCurrentFxRates?tp=eu");
+    private Document currencyDoc = setDocument("http://www.lb.lt/webservices/FxRates/FxRates.asmx/getCurrencyList");
+    private Document fxRateDoc = setDocument("http://www.lb.lt/webservices/FxRates/FxRates.asmx/getCurrentFxRates?tp=eu");
 
     @Autowired
     CurrencyService currencyService;
 
-    private static Document setDocument(String docURL){
+    private static Document setDocument(String docURL) {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setIgnoringElementContentWhitespace(true);
@@ -38,17 +38,17 @@ public class XmlHandler {
         return null;
     }
 
-    public void fillCurrency(){
+    public void fillCurrency() {
         NodeList currencyList = currencyDoc.getElementsByTagName("CcyNtry");
         NodeList fxRateList = fxRateDoc.getElementsByTagName("FxRate");
 
         setCurrency(currencyList, fxRateList, currencyService);
     }
-    private static void setCurrency(NodeList currencyList, NodeList fxRateList, CurrencyService currencyService)
-    {
+
+    private static void setCurrency(NodeList currencyList, NodeList fxRateList, CurrencyService currencyService) {
         try {
             List<Currency> currencies = new ArrayList<>();
-            for(int i=0; i < currencyList.getLength(); i++) {
+            for (int i = 0; i < currencyList.getLength(); i++) {
 
                 Node currency = currencyList.item(i);
                 if (currency.getNodeType() == Node.ELEMENT_NODE) {
@@ -64,10 +64,10 @@ public class XmlHandler {
                     currencies.add(curr);
                 }
             }
-            for(int i=0; i < fxRateList.getLength(); i++) {
+            for (int i = 0; i < fxRateList.getLength(); i++) {
 
                 Node fxRate = fxRateList.item(i);
-                if(fxRate.getNodeType() == Node.ELEMENT_NODE){
+                if (fxRate.getNodeType() == Node.ELEMENT_NODE) {
                     Element fxRateElement = (Element) fxRate;
                     Node CcyAmt = fxRateElement.getElementsByTagName("CcyAmt").item(1);
 
@@ -78,7 +78,7 @@ public class XmlHandler {
                         BigDecimal currencyFxRate = new BigDecimal(CcyAmtElement.getElementsByTagName("Amt").item(0).getTextContent());
 
                         currencies.forEach(currency -> {
-                            if (currencyCode.equals(currency.getCode())){
+                            if (currencyCode.equals(currency.getCode())) {
                                 currency.setFxRate(currencyFxRate);
                                 return;
                             }
@@ -87,7 +87,7 @@ public class XmlHandler {
                 }
             }
             currencies.forEach(currency -> currencyService.addCurrency(currency));
-        } catch(Exception ex){
+        } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
     }

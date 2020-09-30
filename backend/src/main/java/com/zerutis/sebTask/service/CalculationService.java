@@ -1,23 +1,24 @@
 package com.zerutis.sebTask.service;
 
+import com.zerutis.sebTask.dao.CurrencyRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 
 @Service
-public class ValueCalculationService
+public class CalculationService
 {
-/*    @Autowired
-    FxRateRepo fxRateRepo;
+    @Autowired
+    CurrencyRepo currencyRepo;
 
     private BigDecimal calculateValue(BigDecimal fxRate, BigDecimal value) {
         return value.multiply(fxRate);
     }
 
     public BigDecimal getValue(String currencyCode, BigDecimal value){
-        BigDecimal fxRate = fxRateRepo.findByCode(currencyCode).orElse(new BigDecimal(0));
+        BigDecimal sum = currencyRepo.findByCode(currencyCode).orElse(new BigDecimal(0));
 
-        return calculateValue(fxRate, value);
-    }*/
+        return calculateValue(sum, value);
+    }
 }
