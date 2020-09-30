@@ -19,8 +19,16 @@ public class CurrencyService {
         return currency;
     }
 
-    public Currency updateCurrency(Currency currency) {
-        return currency;
+    public Currency updateCurrency(Currency currency, String code) {
+        Currency temp = currencyRepo.findByCode(code).orElse(null);
+        if(temp == null){
+            return null;
+        }
+        temp.setName(currency.getName());
+        temp.setCode(currency.getCode());
+        temp.setFxRate(currency.getFxRate());
+        currencyRepo.save(temp);
+        return temp;
     }
 
     public String deleteCurrency(int id) {

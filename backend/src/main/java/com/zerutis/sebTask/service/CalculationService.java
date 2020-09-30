@@ -17,8 +17,8 @@ public class CalculationService
     }
 
     public BigDecimal getValue(String currencyCode, BigDecimal value){
-        BigDecimal sum = currencyRepo.findByCode(currencyCode).orElse(new BigDecimal(0));
+        BigDecimal rate = currencyRepo.findRateByCode(currencyCode).orElse(new BigDecimal(0));
 
-        return calculateValue(sum, value);
+        return calculateValue(rate, value);
     }
 }

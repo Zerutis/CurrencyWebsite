@@ -12,5 +12,8 @@ public interface CurrencyRepo extends JpaRepository<Currency,Integer> {
 
     @Query(value = "SELECT c.fx_rate FROM Currency c " +
             "WHERE c.code = :code", nativeQuery = true)
-    Optional<BigDecimal> findByCode(@Param("code") String currencyCode);
+    Optional<BigDecimal> findRateByCode(@Param("code") String currencyCode);
+
+
+    Optional<Currency> findByCode(String code);
 }

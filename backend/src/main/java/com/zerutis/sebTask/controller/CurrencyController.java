@@ -17,13 +17,16 @@ public class CurrencyController {
     CurrencyService currencyService;
 
     @PostMapping(path = "/currency", consumes = "application/json", produces = "application/json")
-    public Currency addCurrency(@RequestBody Currency currency)
-    {
-        return currencyService.addCurrency(currency);
+    public String addCurrency(@RequestBody Currency currency) {
+        currencyService.addCurrency(currency);
+        return "hello " + currency.getName();
     }
 
-    @PutMapping("/currency")
-    public Currency saveOrUpdateCurrency(@RequestBody Currency currency) { return currencyService.addCurrency(currency); }
+    @PutMapping("/currency/{code}")
+    public Currency saveOrUpdateCurrency(
+            @RequestBody Currency currency,
+            @PathVariable String code
+    ) { return currencyService.updateCurrency(currency, code); }
 
     @DeleteMapping("/currency/{id}")
     public String deleteCurrency(@PathVariable("id") int id)
