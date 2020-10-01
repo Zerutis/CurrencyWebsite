@@ -17,9 +17,9 @@ public class SebTaskApplication {
 	@Autowired
 	XmlHandler xmlHandler;
 
-	@Scheduled(cron = "0 0 0 */1 * *")
+	//@Scheduled(cron = "0 0 0 */1 * *")
 	@Bean
-	CommandLineRunner initPrintOneLine() {
+	CommandLineRunner fillList() {
 		return args -> {
 			xmlHandler.fillCurrency();
 		};
