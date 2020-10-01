@@ -148,7 +148,6 @@ public class XmlHandler {
                 currencyDetail.setFxRate(rate);
                 details.add(currencyDetail);
             }
-            System.out.println(details.size());
             return details;
         }catch (Exception e){
             return null;
