@@ -2,6 +2,7 @@ package com.zerutis.sebTask;
 
 
 import com.zerutis.sebTask.model.Currency;
+import com.zerutis.sebTask.model.CurrencyDetail;
 import com.zerutis.sebTask.service.CurrencyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,6 +28,14 @@ public class XmlHandler {
 
     private Document currencyDoc = setDocument(currencyURL);
     private Document fxRateDoc = setDocument(fxRateURL);
+    private Document currencyDetailDoc;
+
+    XmlHandler(){}
+
+    public XmlHandler(String code, String dtFrom, String dtTo){
+        currencyDetailDoc = setDocument("http://www.lb.lt/webservices/FxRates/FxRates.asmx/getFxRatesForCurrency?tp=eu&ccy="
+                + code +"&dtFrom="+ dtFrom + "&dtTo=" + dtTo);
+    }
 
     @Autowired
     CurrencyService currencyService;
@@ -100,12 +109,10 @@ public class XmlHandler {
     }
 
     public void updateCurrency(List<Currency> currencies) {
-        NodeList fxRateList = fxRateDoc.getElementsByTagName("FxRate");
-
-        setUpdatedCurrency(currencies, fxRateList, currencyService, fxRateDoc);
+        setUpdatedCurrency(currencies, currencyService, fxRateDoc);
     }
 
-    private static void setUpdatedCurrency(List<Currency> currencies, NodeList fxRateList, CurrencyService service, Document doc){
+    private static void setUpdatedCurrency(List<Currency> currencies, CurrencyService service, Document doc){
         try {
             XPath xp = XPathFactory.newInstance().newXPath();
             NodeList codeList = (NodeList) xp.compile("/FxRates/FxRate/CcyAmt[2]/Ccy/text()").evaluate(doc, XPathConstants.NODESET);
@@ -121,6 +128,32 @@ public class XmlHandler {
             currencies.forEach(currency -> service.updateCurrency(currency,currency.getCode()));
         } catch (Exception e){
             System.out.println(e.getMessage());
+        }
+    }
+
+    public List<CurrencyDetail> getCurrencyDetail(){
+        try {
+            List<CurrencyDetail> details = new ArrayList<>();
+            XPath xp = XPathFactory.newInstance().newXPath();
+            NodeList rateList = (NodeList) xp.compile("/FxRates/FxRate/CcyAmt[2]/Amt/text()").evaluate(currencyDetailDoc,
+                    XPathConstants.NODESET);
+            NodeList dateList = (NodeList) xp.compile("/FxRates/FxRate/Dt/text()").evaluate(currencyDetailDoc,
+                    XPathConstants.NODESET);
+
+            for (int i = 0; i < rateList.getLength(); i++) {
+                CurrencyDetail currencyDetail = new CurrencyDetail();
+                String date = dateList.item(i).getNodeValue();
+                BigDecimal rate = new BigDecimal(rateList.item(i).getNodeValue());
+                currencyDetail.setDate(date);
+                currencyDetail.setFxRate(rate);
+                System.out.println("date: " + date);
+                System.out.println("rate: " + rate);
+                details.add(currencyDetail);
+            }
+            System.out.println(details.size());
+            return details;
+        }catch (Exception e){
+            return null;
         }
     }
 }
