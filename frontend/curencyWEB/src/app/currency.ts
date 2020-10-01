@@ -1,7 +1,5 @@
 export class Currency{
-    constructor(
-        name: string,
-        code: string,
-        rate: number
-    ){}
+    name: string;
+    code: string;
+    rate: BigInteger;
 }
