@@ -51,4 +51,6 @@ public class CurrencyService {
     }
 
     public Optional<Currency> getCurrencyById(int id) { return  currencyRepo.findById(id); }
+
+    public Optional<Currency> getCurrencyByCode(String code) { return currencyRepo.findByCode(code); }
 }

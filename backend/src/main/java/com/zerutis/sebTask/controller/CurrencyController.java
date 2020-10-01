@@ -46,11 +46,22 @@ public class CurrencyController {
     }
 
     @GetMapping("/currency/{id}")
-    public Optional<Currency> getOwner(@PathVariable("id") int id)
+    public Optional<Currency> getCurrency(@PathVariable("id") int id)
     {
         Optional<Currency> currency = currencyService.getCurrencyById(id);
         if (currency.isEmpty()) {
             throw new ApiRequestException("There is no currency by ID: " + id);
+        }
+
+        return currency;
+    }
+
+    @GetMapping("/currency/code/{code}")
+    public Optional<Currency> getCurrency(@PathVariable("code") String code)
+    {
+        Optional<Currency> currency = currencyService.getCurrencyByCode(code);
+        if (currency.isEmpty()) {
+            throw new ApiRequestException("There is no currency by Code: " + code);
         }
 
         return currency;
