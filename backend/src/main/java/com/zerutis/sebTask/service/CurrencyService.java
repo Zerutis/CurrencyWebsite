@@ -1,8 +1,10 @@
 package com.zerutis.sebTask.service;
 
+import com.zerutis.sebTask.XmlHandler;
 import com.zerutis.sebTask.dao.CurrencyRepo;
 import com.zerutis.sebTask.model.Currency;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,9 +16,17 @@ public class CurrencyService {
     @Autowired
     CurrencyRepo currencyRepo;
 
+    @Autowired
+    XmlHandler xmlHandler;
+
     public Currency addCurrency(Currency currency) {
         currencyRepo.save(currency);
         return currency;
+    }
+
+    @Scheduled(cron = "0 0 0 */1 * *")
+    public void UpdateRatesDaily(){
+        xmlHandler.updateCurrency(currencyRepo.findAll());
     }
 
     public Currency updateCurrency(Currency currency, String code) {
@@ -24,6 +34,7 @@ public class CurrencyService {
         if(temp == null){
             return null;
         }
+        System.out.println("Updated");
         temp.setName(currency.getName());
         temp.setCode(currency.getCode());
         temp.setFxRate(currency.getFxRate());

@@ -12,14 +12,21 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+
 @RestController
 public class XmlHandler {
-    private Document currencyDoc = setDocument("http://www.lb.lt/webservices/FxRates/FxRates.asmx/getCurrencyList");
-    private Document fxRateDoc = setDocument("http://www.lb.lt/webservices/FxRates/FxRates.asmx/getCurrentFxRates?tp=eu");
+    private final String currencyURL = "http://www.lb.lt/webservices/FxRates/FxRates.asmx/getCurrencyList";
+    private final String fxRateURL = "http://www.lb.lt/webservices/FxRates/FxRates.asmx/getCurrentFxRates?tp=eu";
+
+    private Document currencyDoc = setDocument(currencyURL);
+    private Document fxRateDoc = setDocument(fxRateURL);
 
     @Autowired
     CurrencyService currencyService;
@@ -89,6 +96,31 @@ public class XmlHandler {
             currencies.forEach(currency -> currencyService.addCurrency(currency));
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
+        }
+    }
+
+    public void updateCurrency(List<Currency> currencies) {
+        NodeList fxRateList = fxRateDoc.getElementsByTagName("FxRate");
+
+        setUpdatedCurrency(currencies, fxRateList, currencyService, fxRateDoc);
+    }
+
+    private static void setUpdatedCurrency(List<Currency> currencies, NodeList fxRateList, CurrencyService service, Document doc){
+        try {
+            XPath xp = XPathFactory.newInstance().newXPath();
+            NodeList codeList = (NodeList) xp.compile("/FxRates/FxRate/CcyAmt[2]/Ccy/text()").evaluate(doc, XPathConstants.NODESET);
+            NodeList rateList = (NodeList) xp.compile("/FxRates/FxRate/CcyAmt[2]/Amt/text()").evaluate(doc, XPathConstants.NODESET);
+            for (int i = 0; i < codeList.getLength(); i++){
+                String code = codeList.item(i).getNodeValue();
+                BigDecimal rate = new BigDecimal(rateList.item(i).getNodeValue());
+                currencies.forEach(currency -> {
+                    if(code.equals(currency.getCode()))
+                        currency.setFxRate(rate);
+                });
+            }
+            currencies.forEach(currency -> service.updateCurrency(currency,currency.getCode()));
+        } catch (Exception e){
+            System.out.println(e.getMessage());
         }
     }
 }
