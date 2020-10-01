@@ -146,8 +146,6 @@ public class XmlHandler {
                 BigDecimal rate = new BigDecimal(rateList.item(i).getNodeValue());
                 currencyDetail.setDate(date);
                 currencyDetail.setFxRate(rate);
-                System.out.println("date: " + date);
-                System.out.println("rate: " + rate);
                 details.add(currencyDetail);
             }
             System.out.println(details.size());
