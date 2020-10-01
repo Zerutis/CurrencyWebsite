@@ -34,7 +34,6 @@ public class CurrencyService {
         if(temp == null){
             return null;
         }
-        System.out.println("Updated");
         temp.setName(currency.getName());
         temp.setCode(currency.getCode());
         temp.setFxRate(currency.getFxRate());
