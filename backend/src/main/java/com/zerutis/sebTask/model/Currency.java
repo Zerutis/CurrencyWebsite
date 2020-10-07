@@ -24,6 +24,15 @@ public class Currency {
         return id;
     }
 
+    public Currency(){}
+
+    public Currency(Integer id, String code, String name, BigDecimal fxRate) {
+        this.id = id;
+        this.code = code;
+        this.name = name;
+        this.fxRate = fxRate;
+    }
+
     public void setId(Integer id) {
         this.id = id;
     }
